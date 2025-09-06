@@ -14,8 +14,36 @@ const AssistantCard = ({
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
 
+  // Create a function to get display domain codes from database values
+  const getDomainDisplayCode = (domain) => {
+    const domainToCodeMapping = {
+      'usmbok': 'USMBOK',
+      'service_infrastructure_management': 'USMXXX',
+      'service_consumer_management': 'USM1XX',
+      'service_strategy_management': 'USM2XX',
+      'service_performance_management': 'USM3XX',
+      'service_experience_management': 'USM4XX',
+      'service_delivery_management': 'USM5XX',
+      'service_operations_management': 'USM6XX',
+      'service_value_management': 'USM7XX',
+      'intelligent_automation': 'USM8XX',
+      'itil': 'ITIL',
+      'it4it': 'IT4IT',
+      'business': 'Business',
+      'technology': 'Technology',
+      'finance': 'Finance',
+      'marketing': 'Marketing',
+      'undefined': 'Undefined'
+    };
+
+    return domainToCodeMapping?.[domain?.toLowerCase()] || domain?.toUpperCase() || 'Undefined';
+  };
+
   const getDomainIcon = (domain) => {
-    switch (domain) {
+    switch (domain?.toLowerCase()) {
+      case 'usmbok': case 'service_infrastructure_management': case 'service_consumer_management': case 'service_strategy_management': case 'service_performance_management': case 'service_experience_management': case 'service_delivery_management': case 'service_operations_management': case 'service_value_management': case 'intelligent_automation':
+        return 'BookOpen';
+      case 'itil': case 'it4it': return 'Award';
       case 'technology': return 'Code';
       case 'business': return 'Briefcase';
       case 'finance': return 'DollarSign';
@@ -25,13 +53,38 @@ const AssistantCard = ({
   };
 
   const getDomainColor = (domain) => {
-    switch (domain) {
+    switch (domain?.toLowerCase()) {
+      case 'usmbok': return 'bg-indigo-500';
+      case 'service_infrastructure_management': return 'bg-indigo-500';
+      case 'service_consumer_management': return 'bg-blue-500';
+      case 'service_strategy_management': return 'bg-green-500';
+      case 'service_performance_management': return 'bg-yellow-500';
+      case 'service_experience_management': return 'bg-orange-500';
+      case 'service_delivery_management': return 'bg-red-500';
+      case 'service_operations_management': return 'bg-purple-500';
+      case 'service_value_management': return 'bg-pink-500';
+      case 'intelligent_automation': return 'bg-teal-500';
+      case 'itil': return 'bg-orange-500';
+      case 'it4it': return 'bg-violet-500';
       case 'technology': return 'bg-blue-500';
       case 'business': return 'bg-green-500';
       case 'finance': return 'bg-yellow-500';
       case 'marketing': return 'bg-purple-500';
       default: return 'bg-gray-500';
     }
+  };
+
+  // Format domain for display - convert to uppercase for USMXXX values
+  const formatDomainDisplay = (domain) => {
+    if (!domain || domain === 'undefined') return 'Undefined';
+    
+    const lowerDomain = domain?.toLowerCase();
+    if (lowerDomain?.startsWith('usm')) {
+      return domain?.toUpperCase();
+    }
+    
+    // For legacy domains, capitalize first letter
+    return domain?.charAt(0)?.toUpperCase() + domain?.slice(1);
   };
 
   const handleStatusClick = (action) => {
@@ -41,7 +94,11 @@ const AssistantCard = ({
 
   const handleStatusConfirm = async (reason) => {
     if (onStatusChange && pendingAction) {
-      await onStatusChange(assistant?.id, pendingAction, reason);
+      try {
+        await onStatusChange(assistant?.id, pendingAction, reason);
+      } catch (error) {
+        console.error('Error updating assistant status:', error);
+      }
     }
     setShowStatusModal(false);
     setPendingAction(null);
@@ -81,6 +138,12 @@ const AssistantCard = ({
         {/* Assistant Info */}
         <div className="mb-4">
           <h3 className="font-semibold text-foreground mb-1">{assistant?.name}</h3>
+          
+          {/* Domain code as second line subtitle - prominently displayed */}
+          <div className="text-sm font-medium text-primary mb-2">
+            {getDomainDisplayCode(assistant?.domain)}
+          </div>
+          
           <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
             {assistant?.description}
           </p>
@@ -90,14 +153,6 @@ const AssistantCard = ({
             <Icon name="BookOpen" size={14} className="text-primary" />
             <span className="text-sm font-medium text-primary">
               {assistant?.knowledge_bank}
-            </span>
-          </div>
-
-          {/* Domain */}
-          <div className="flex items-center space-x-2 mb-2">
-            <Icon name="Tag" size={14} className="text-muted-foreground" />
-            <span className="text-sm text-muted-foreground capitalize">
-              {assistant?.domain}
             </span>
           </div>
 
@@ -118,13 +173,13 @@ const AssistantCard = ({
             <div className="text-lg font-semibold text-foreground">
               {assistant?.credits_per_message || 10}
             </div>
-            <div className="text-xs text-muted-foreground">Tokens Used</div>
+            <div className="text-xs text-muted-foreground">Credits/Message</div>
           </div>
           <div className="text-center">
             <div className="text-lg font-semibold text-foreground">
-              {Math.floor(Math.random() * 1000) + 100}
+              {assistant?.is_active ? 'Available' : 'Paused'}
             </div>
-            <div className="text-xs text-muted-foreground">Total Uses</div>
+            <div className="text-xs text-muted-foreground">Status</div>
           </div>
         </div>
 

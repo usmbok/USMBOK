@@ -16,119 +16,76 @@ const AssistantCatalog = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Updated category options aligned with knowledge banks
-  const categoryOptions = [
-    { value: 'all', label: 'All Categories' },
-    { value: 'service-management', label: 'Service Management' },
-    { value: 'strategy-governance', label: 'Strategy & Governance' },
-    { value: 'operations-delivery', label: 'Operations & Delivery' },
-    { value: 'technology-automation', label: 'Technology & Automation' },
-    { value: 'frameworks', label: 'Frameworks & Standards' }
-  ];
+  // Domain to display label mapping - updated to use database domain values dynamically
+  const getDomainDisplayInfo = (domainCode, assistantName) => {
+    // Domain code to display mapping - updated to match database values
+    const domainMappings = {
+      'usmbok': { label: 'USMBOK', fullCode: 'USMBOK' },
+      'service_infrastructure_management': { label: 'USMXXX', fullCode: 'USMXXX' },
+      'service_consumer_management': { label: 'USM1XX', fullCode: 'USM1XX' },
+      'service_strategy_management': { label: 'USM2XX', fullCode: 'USM2XX' },
+      'service_performance_management': { label: 'USM3XX', fullCode: 'USM3XX' },
+      'service_experience_management': { label: 'USM4XX', fullCode: 'USM4XX' },
+      'service_delivery_management': { label: 'USM5XX', fullCode: 'USM5XX' },
+      'service_operations_management': { label: 'USM6XX', fullCode: 'USM6XX' },
+      'service_value_management': { label: 'USM7XX', fullCode: 'USM7XX' },
+      'intelligent_automation': { label: 'USM8XX', fullCode: 'USM8XX' },
+      'itil': { label: 'ITIL', fullCode: 'ITIL Framework' },
+      'it4it': { label: 'IT4IT', fullCode: 'IT4IT Architecture' },
+      'business': { label: 'Business', fullCode: 'Business (Legacy)' },
+      'technology': { label: 'Technology', fullCode: 'Technology (Legacy)' },
+      'finance': { label: 'Finance', fullCode: 'Finance (Legacy)' },
+      'marketing': { label: 'Marketing', fullCode: 'Marketing (Legacy)' },
+      'undefined': { label: '', fullCode: '' }
+    };
 
-  // Updated specialty options based on the 12 knowledge banks
-  const specialtyOptions = [
-    { value: 'all', label: 'All Specialties' },
-    { value: 'usmbok', label: 'USMBOK' },
-    { value: 'service_consumer_management', label: 'Service Consumer Management' },
-    { value: 'service_strategy_management', label: 'Service Strategy Management' },
-    { value: 'service_performance_management', label: 'Service Performance Management' },
-    { value: 'service_value_management', label: 'Service Value Management' },
-    { value: 'intelligent_automation', label: 'Intelligent Automation' },
-    { value: 'service_experience_management', label: 'Service Experience Management' },
-    { value: 'service_delivery_management', label: 'Service Delivery Management' },
-    { value: 'service_operations_management', label: 'Service Operations Management' },
-    { value: 'service_infrastructure_management', label: 'Service Infrastructure Management' },
-    { value: 'itil', label: 'ITIL' },
-    { value: 'it4it', label: 'IT4IT' }
-  ];
+    const domainInfo = domainMappings?.[domainCode?.toLowerCase()] || { label: '', fullCode: '' };
+    
+    // Return the actual domain label from database, not hardcoded mappings
+    return {
+      subtitle: domainInfo?.label || '',
+      displayCode: domainInfo?.fullCode || domainInfo?.label || ''
+    };
+  };
 
-  // Domain to title mapping based on user requirements - removing specialist/advisor/consultant/expert titles
-  const domainTitleMapping = {
-    'usmbok': { 
-      name: 'USMBOK®', 
-      subtitle: 'Universal Service Management',
-      category: 'Service Management',
-      icon: 'BookOpen',
-      color: 'bg-blue-500'
-    },
-    'service_consumer_management': { 
-      name: 'Service Consumer Management', 
-      subtitle: 'USM1XX',
-      category: 'Service Management',
-      icon: 'Users',
-      color: 'bg-green-500'
-    },
-    'service_strategy_management': { 
-      name: 'Service Strategy Management', 
-      subtitle: 'USM2XX',
-      category: 'Strategy & Governance',
-      icon: 'Target',
-      color: 'bg-purple-500'
-    },
-    'service_performance_management': { 
-      name: 'Service Performance Management', 
-      subtitle: 'USM3XX',
-      category: 'Operations & Delivery',
-      icon: 'BarChart3',
-      color: 'bg-indigo-500'
-    },
-    'service_value_management': { 
-      name: 'Service Value Management', 
-      subtitle: 'USM7XX',
-      category: 'Strategy & Governance',
-      icon: 'DollarSign',
-      color: 'bg-yellow-500'
-    },
-    'intelligent_automation': { 
-      name: 'Intelligent Automation', 
-      subtitle: 'USM8XX',
-      category: 'Technology & Automation',
-      icon: 'Bot',
-      color: 'bg-red-500'
-    },
-    'service_experience_management': { 
-      name: 'Service Experience Management', 
-      subtitle: 'USM4XX',
-      category: 'Service Management',
-      icon: 'Heart',
-      color: 'bg-pink-500'
-    },
-    'service_delivery_management': { 
-      name: 'Service Delivery Management', 
-      subtitle: 'USM5XX',
-      category: 'Operations & Delivery',
-      icon: 'Truck',
-      color: 'bg-teal-500'
-    },
-    'service_operations_management': { 
-      name: 'Service Operations Management', 
-      subtitle: 'USM6XX',
-      category: 'Operations & Delivery',
-      icon: 'Settings',
-      color: 'bg-gray-500'
-    },
-    'service_infrastructure_management': { 
-      name: 'Service Infrastructure Management', 
-      subtitle: 'USMXXX',
-      category: 'Technology & Automation',
-      icon: 'Server',
-      color: 'bg-cyan-500'
-    },
-    'itil': { 
-      name: 'ITIL', 
-      subtitle: 'ITIL Framework',
-      category: 'Frameworks & Standards',
-      icon: 'Award',
-      color: 'bg-orange-500'
-    },
-    'it4it': { 
-      name: 'IT4IT', 
-      subtitle: 'IT4IT Architecture',
-      category: 'Frameworks & Standards',
-      icon: 'Layers',
-      color: 'bg-violet-500'
-    }
+  // Category mapping based on assistant knowledge bank
+  const getCategoryFromKnowledgeBank = (knowledgeBank) => {
+    const categoryMappings = {
+      'USMBOK': 'Service Management',
+      'Service Consumer Management': 'Service Management',
+      'Service Strategy Management': 'Strategy & Governance', 
+      'Service Performance Management': 'Operations & Delivery',
+      'Service Value Management': 'Strategy & Governance',
+      'Intelligent Automation': 'Technology & Automation',
+      'Service Experience Management': 'Service Management',
+      'Service Delivery Management': 'Operations & Delivery',
+      'Service Operations Management': 'Operations & Delivery',
+      'Service Infrastructure Management': 'Technology & Automation',
+      'ITIL': 'Frameworks & Standards',
+      'IT4IT': 'Frameworks & Standards'
+    };
+
+    return categoryMappings?.[knowledgeBank] || 'Other';
+  };
+
+  // Icon mapping based on knowledge bank
+  const getIconFromKnowledgeBank = (knowledgeBank) => {
+    const iconMappings = {
+      'USMBOK': { icon: 'BookOpen', color: 'bg-blue-500' },
+      'Service Consumer Management': { icon: 'Users', color: 'bg-green-500' },
+      'Service Strategy Management': { icon: 'Target', color: 'bg-purple-500' },
+      'Service Performance Management': { icon: 'BarChart3', color: 'bg-indigo-500' },
+      'Service Value Management': { icon: 'DollarSign', color: 'bg-yellow-500' },
+      'Intelligent Automation': { icon: 'Bot', color: 'bg-red-500' },
+      'Service Experience Management': { icon: 'Heart', color: 'bg-pink-500' },
+      'Service Delivery Management': { icon: 'Truck', color: 'bg-teal-500' },
+      'Service Operations Management': { icon: 'Settings', color: 'bg-gray-500' },
+      'Service Infrastructure Management': { icon: 'Server', color: 'bg-cyan-500' },
+      'ITIL': { icon: 'Award', color: 'bg-orange-500' },
+      'IT4IT': { icon: 'Layers', color: 'bg-violet-500' }
+    };
+
+    return iconMappings?.[knowledgeBank] || { icon: 'Bot', color: 'bg-gray-500' };
   };
 
   // Fetch assistants from Supabase
@@ -144,25 +101,22 @@ const AssistantCatalog = () => {
           throw supabaseError;
         }
 
-        // Transform Supabase data to match UI expectations
+        // Transform Supabase data to match UI expectations - using actual database values
         const transformedAssistants = data?.map((assistant) => {
-          const mapping = domainTitleMapping?.[assistant?.domain] || {
-            name: assistant?.name,
-            subtitle: '',
-            category: 'Other',
-            icon: 'Bot',
-            color: 'bg-gray-500'
-          };
+          // Get domain display info from database value, not hardcoded mapping
+          const domainInfo = getDomainDisplayInfo(assistant?.domain, assistant?.name);
+          const category = getCategoryFromKnowledgeBank(assistant?.knowledge_bank);
+          const iconInfo = getIconFromKnowledgeBank(assistant?.knowledge_bank);
 
           return {
             id: assistant?.id,
-            name: mapping?.name,
-            subtitle: mapping?.subtitle,
+            name: assistant?.name, // Use actual assistant name from database
+            subtitle: domainInfo?.subtitle, // Use actual domain from database
             description: assistant?.description || '',
-            category: mapping?.category,
-            specialty: assistant?.domain,
-            icon: mapping?.icon,
-            color: mapping?.color,
+            category: category,
+            specialty: assistant?.domain, // Keep original domain for filtering
+            icon: iconInfo?.icon,
+            color: iconInfo?.color,
             expertise: [], // Will be populated from description or other fields if available
             rating: 4.8, // Default rating - could be stored in DB
             conversations: 0, // Could be calculated from actual conversation counts
@@ -183,19 +137,47 @@ const AssistantCatalog = () => {
   }, []);
 
   // Filter assistants based on search and filters
-  const filteredAssistants = assistantCompanions?.filter(assistant => {
-    const matchesSearch = !searchQuery || 
-      assistant?.name?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      assistant?.description?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
-      assistant?.subtitle?.toLowerCase()?.includes(searchQuery?.toLowerCase());
-    
-    const matchesCategory = !selectedCategory || selectedCategory === 'all' || assistant?.category?.toLowerCase()?.replace(/\s+/g,'-')?.includes(selectedCategory?.replace(/-/g, '_'));
-    
-    const matchesSpecialty = !selectedSpecialty || selectedSpecialty === 'all' || 
-      assistant?.specialty === selectedSpecialty;
-    
+  const filteredAssistants = assistantCompanions?.filter((assistant) => {
+    const matchesSearch = !searchQuery ||
+    assistant?.name?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+    assistant?.description?.toLowerCase()?.includes(searchQuery?.toLowerCase()) ||
+    assistant?.subtitle?.toLowerCase()?.includes(searchQuery?.toLowerCase());
+
+    const matchesCategory = !selectedCategory || selectedCategory === 'all' || assistant?.category?.toLowerCase()?.replace(/\s+/g, '-')?.includes(selectedCategory?.replace(/-/g, '_'));
+
+    const matchesSpecialty = !selectedSpecialty || selectedSpecialty === 'all' ||
+    assistant?.specialty === selectedSpecialty;
+
     return matchesSearch && matchesCategory && matchesSpecialty;
   });
+
+  // Add category options based on assistants data
+  const categoryOptions = [
+    { value: 'all', label: 'All Categories' },
+    { value: 'service-management', label: 'Service Management' },
+    { value: 'strategy-governance', label: 'Strategy & Governance' },
+    { value: 'operations-delivery', label: 'Operations & Delivery' },
+    { value: 'technology-automation', label: 'Technology & Automation' },
+    { value: 'frameworks-standards', label: 'Frameworks & Standards' },
+    { value: 'other', label: 'Other' }
+  ];
+
+  // Add specialty options based on assistants data - updated to match database values
+  const specialtyOptions = [
+    { value: 'all', label: 'All Specialties' },
+    { value: 'usmbok', label: 'USMBOK' },
+    { value: 'service_infrastructure_management', label: 'USMXXX' },
+    { value: 'service_consumer_management', label: 'USM1XX' },
+    { value: 'service_strategy_management', label: 'USM2XX' },
+    { value: 'service_performance_management', label: 'USM3XX' },
+    { value: 'service_experience_management', label: 'USM4XX' },
+    { value: 'service_delivery_management', label: 'USM5XX' },
+    { value: 'service_operations_management', label: 'USM6XX' },
+    { value: 'service_value_management', label: 'USM7XX' },
+    { value: 'intelligent_automation', label: 'USM8XX' },
+    { value: 'itil', label: 'ITIL' },
+    { value: 'it4it', label: 'IT4IT' }
+  ];
 
   const handleStartConversation = (assistantId) => {
     navigate(`/ai-chat-interface?assistant=${assistantId}`);
@@ -215,8 +197,8 @@ const AssistantCatalog = () => {
             <p className="text-muted-foreground">Loading assistants...</p>
           </div>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   if (error) {
@@ -233,8 +215,8 @@ const AssistantCatalog = () => {
             </Button>
           </div>
         </div>
-      </div>
-    );
+      </div>);
+
   }
 
   return (
@@ -244,11 +226,11 @@ const AssistantCatalog = () => {
       {/* Hero Section */}
       <section className="bg-gradient-to-br from-primary/5 to-secondary/5 py-12 px-4 sm:px-6 lg:px-8 pt-28">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl font-bold text-foreground mb-4">
-            AI Companion Catalog
+          <h1 className="text-4xl font-bold text-foreground mb-4">Knowledge Bank
+
           </h1>
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Choose from our specialized AI companions, each trained in specific domains to provide expert guidance and support.
+          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">Choose from our specialized AI Assistants, each trained in specific domains to provide expert guidance and support.
+
           </p>
 
           {/* Search and Filters */}
@@ -260,8 +242,8 @@ const AssistantCatalog = () => {
                   placeholder="Search companions by name, expertise, or skills..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e?.target?.value)}
-                  className="w-full"
-                />
+                  className="w-full" />
+
               </div>
               
               <div className="lg:w-48">
@@ -270,8 +252,8 @@ const AssistantCatalog = () => {
                   value={selectedCategory}
                   onChange={setSelectedCategory}
                   placeholder="Category"
-                  className="w-full"
-                />
+                  className="w-full" />
+
               </div>
               
               <div className="lg:w-48">
@@ -280,8 +262,8 @@ const AssistantCatalog = () => {
                   value={selectedSpecialty}
                   onChange={setSelectedSpecialty}
                   placeholder="Specialty"
-                  className="w-full"
-                />
+                  className="w-full" />
+
               </div>
             </div>
           </form>
@@ -297,16 +279,16 @@ const AssistantCatalog = () => {
             </h2>
           </div>
 
-          {filteredAssistants?.length === 0 ? (
-            <div className="text-center py-12">
+          {filteredAssistants?.length === 0 ?
+          <div className="text-center py-12">
               <Icon name="Search" size={48} className="text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">No companions found</h3>
               <p className="text-muted-foreground">Try adjusting your search criteria or filters.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredAssistants?.map((assistant) => (
-                <div key={assistant?.id} className="bg-card rounded-lg border border-border p-6 hover:shadow-md transition-shadow">
+            </div> :
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredAssistants?.map((assistant) =>
+            <div key={assistant?.id} className="bg-card rounded-lg border border-border p-6 hover:shadow-md transition-shadow">
                   {/* Header */}
                   <div className="flex items-center mb-4">
                     <div className={`w-12 h-12 ${assistant?.color} rounded-full flex items-center justify-center mr-4`}>
@@ -343,20 +325,20 @@ const AssistantCatalog = () => {
                   </div>
 
                   {/* Action Button */}
-                  <Button 
-                    onClick={() => handleStartConversation(assistant?.id)}
-                    className="w-full"
-                  >
+                  <Button
+                onClick={() => handleStartConversation(assistant?.id)}
+                className="w-full">
+
                     Start Conversation
                   </Button>
                 </div>
-              ))}
+            )}
             </div>
-          )}
+          }
         </div>
       </section>
-    </div>
-  );
+    </div>);
+
 };
 
 export default AssistantCatalog;

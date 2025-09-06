@@ -41,12 +41,19 @@ const AssistantManagement = () => {
     'IT4IT'
   ];
 
+  // Domain options simplified to show only USM codes as requested
   const domainOptions = [
     { value: 'all', label: 'All Domains' },
-    { value: 'business', label: 'Business' },
-    { value: 'technology', label: 'Technology' },
-    { value: 'finance', label: 'Finance' },
-    { value: 'marketing', label: 'Marketing' }
+    { value: 'usmbok', label: 'USMXXX' },
+    { value: 'service_consumer_management', label: 'USM1XX' },
+    { value: 'service_strategy_management', label: 'USM2XX' },
+    { value: 'service_performance_management', label: 'USM3XX' },
+    { value: 'service_experience_management', label: 'USM4XX' },
+    { value: 'service_delivery_management', label: 'USM5XX' },
+    { value: 'service_operations_management', label: 'USM6XX' },
+    { value: 'service_value_management', label: 'USM7XX' },
+    { value: 'intelligent_automation', label: 'USM8XX' },
+    { value: 'service_infrastructure_management', label: 'USM9XX' },
   ];
 
   const statusOptions = [
@@ -193,33 +200,49 @@ const AssistantManagement = () => {
   const handleSaveAssistant = async (assistantData) => {
     try {
       if (editingAssistant) {
-        // Update existing assistant
-        const { error } = await supabase?.from('assistants')?.update(assistantData)?.eq('id', editingAssistant?.id);
-        if (error) throw error;
+        // Update existing assistant with improved error handling
+        const { error } = await supabase
+          ?.from('assistants')
+          ?.update(assistantData)
+          ?.eq('id', editingAssistant?.id);
+        
+        if (error) {
+          console.error('Supabase update error:', error);
+          throw new Error(`Database update failed: ${error.message}`);
+        }
 
         // Log update activity
         await activityLogService?.logActivity({
           activityType: 'assistant_updated',
           entityType: 'assistant',
           entityId: editingAssistant?.id,
-          description: `Assistant "${assistantData?.name}" updated`,
+          description: `Assistant "${assistantData?.name}" updated with domain "${assistantData?.domain}"`,
           metadata: {
             assistant_name: assistantData?.name,
             knowledge_bank: assistantData?.knowledge_bank,
+            domain: assistantData?.domain,
             changes: assistantData
           }
         });
       } else {
         // Create new assistant
-        const { data, error } = await supabase?.from('assistants')?.insert(assistantData)?.select()?.single();
-        if (error) throw error;
+        const { data, error } = await supabase
+          ?.from('assistants')
+          ?.insert(assistantData)
+          ?.select()
+          ?.single();
+        
+        if (error) {
+          console.error('Supabase insert error:', error);
+          throw new Error(`Database insert failed: ${error.message}`);
+        }
 
         // Log creation activity
         await activityLogService?.logActivity({
           activityType: 'assistant_created',
           entityType: 'assistant',
           entityId: data?.id,
-          description: `New assistant "${assistantData?.name}" created`,
+          description: `New assistant "${assistantData?.name}" created with domain "${assistantData?.domain}"`,
           metadata: {
             assistant_name: assistantData?.name,
             knowledge_bank: assistantData?.knowledge_bank,
@@ -228,11 +251,16 @@ const AssistantManagement = () => {
         });
       }
 
+      // Force refresh to see changes immediately
       await fetchAssistants();
       setShowEditor(false);
       setEditingAssistant(null);
+      
+      console.log('Assistant saved successfully');
     } catch (error) {
       console.error('Error saving assistant:', error);
+      // Re-throw to let the editor component handle user feedback
+      throw error;
     }
   };
 
@@ -265,15 +293,21 @@ const AssistantManagement = () => {
     try {
       const newStatus = action === 'activate';
       
-      // Update assistant status
+      // Update assistant status with error handling
       const { error } = await supabase
         ?.from('assistants')
-        ?.update({ is_active: newStatus })
+        ?.update({ 
+          is_active: newStatus,
+          updated_at: new Date()?.toISOString()
+        })
         ?.eq('id', assistantId);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error updating assistant:', error);
+        throw new Error('Failed to update assistant status in database');
+      }
 
-      // Log admin activity
+      // Log admin activity with proper error handling
       const { data: adminProfile } = await supabase
         ?.from('user_profiles')
         ?.select('full_name')
@@ -291,15 +325,24 @@ const AssistantManagement = () => {
           metadata: {
             action: action,
             reason: reason,
-            admin_name: adminProfile?.full_name
+            admin_name: adminProfile?.full_name,
+            assistant_id: assistantId,
+            new_status: newStatus
           }
         });
 
       if (logError) console.error('Error logging admin activity:', logError);
 
+      // Force refresh to ensure UI reflects database changes
       await fetchAssistants();
+      
+      // Success feedback could be added here
+      console.log(`Successfully ${action}d assistant`);
+      
     } catch (error) {
       console.error(`Error ${action}ing assistant:`, error);
+      // Show user-friendly error message
+      alert(`Failed to ${action} assistant. Please try again.`);
       throw error;
     }
   };

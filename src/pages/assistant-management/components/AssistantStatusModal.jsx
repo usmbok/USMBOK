@@ -102,7 +102,7 @@ const AssistantStatusModal = ({
               type="text"
               value={reason}
               onChange={(e) => setReason(e?.target?.value)}
-              placeholder={`Reason for ${action}ing this assistant`}
+              placeholder={isActivating ? "Reason for activating this assistant" : "Reason for deactivating this assistant"}
             />
           </div>
 

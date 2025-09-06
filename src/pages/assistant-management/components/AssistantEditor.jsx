@@ -13,7 +13,7 @@ const AssistantEditor = ({
   const [formData, setFormData] = useState({
     name: assistant?.name || '',
     description: assistant?.description || '',
-    domain: assistant?.domain || 'business',
+    domain: assistant?.domain || 'USMXXX', // Changed default to USM code
     knowledge_bank: assistant?.knowledge_bank || '',
     openai_assistant_id: assistant?.openai_assistant_id || '',
     is_active: assistant?.is_active ?? true,
@@ -21,12 +21,24 @@ const AssistantEditor = ({
   });
 
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
+  // Updated domain options with direct USM codes as values
   const domainOptions = [
-    { value: 'business', label: 'Business' },
-    { value: 'technology', label: 'Technology' },
-    { value: 'finance', label: 'Finance' },
-    { value: 'marketing', label: 'Marketing' }
+    { value: 'USMXXX', label: 'USMXXX - Universal Service Management' },
+    { value: 'USM1XX', label: 'USM1XX - Service Consumer Management' },
+    { value: 'USM2XX', label: 'USM2XX - Service Strategy Management' },
+    { value: 'USM3XX', label: 'USM3XX - Service Performance Management' },
+    { value: 'USM4XX', label: 'USM4XX - Service Experience Management' },
+    { value: 'USM5XX', label: 'USM5XX - Service Delivery Management' },
+    { value: 'USM6XX', label: 'USM6XX - Service Operations Management' },
+    { value: 'USM7XX', label: 'USM7XX - Service Value Management' },
+    { value: 'USM8XX', label: 'USM8XX - Intelligent Automation' },
+    { value: 'USM9XX', label: 'USM9XX - Service Infrastructure Management' },
+    { value: 'ITIL', label: 'ITIL - IT Infrastructure Library' },
+    { value: 'IT4IT', label: 'IT4IT - IT Value Chain Reference Architecture' },
   ];
 
   const knowledgeBankOptions = knowledgeBanks?.map(bank => ({
@@ -43,6 +55,16 @@ const AssistantEditor = ({
 
     if (!formData?.description?.trim()) {
       newErrors.description = 'Description is required';
+    }
+
+    if (!formData?.domain?.trim()) {
+      newErrors.domain = 'Domain is required';
+    } else {
+      // Validate USM code format
+      const usmPattern = /^(USM[X0-9]{3}|ITIL|IT4IT)$/;
+      if (!usmPattern?.test(formData?.domain?.trim())) {
+        newErrors.domain = 'Invalid USM code format. Use USMXXX, USM1XX-USM9XX, ITIL, or IT4IT';
+      }
     }
 
     if (!formData?.knowledge_bank) {
@@ -64,10 +86,44 @@ const AssistantEditor = ({
       return;
     }
 
+    setSaving(true);
+    setSaveError('');
+    setSaveSuccess(false);
+    
     try {
-      await onSave(formData);
+      // Ensure domain is a valid USM code (now text, not enum)
+      const validDomain = formData?.domain?.trim()?.toUpperCase() || 'USMXXX';
+
+      // Prepare update data with text domain
+      const updateData = {
+        name: formData?.name?.trim(),
+        description: formData?.description?.trim(),
+        domain: validDomain, // Direct text value, no enum casting needed
+        knowledge_bank: formData?.knowledge_bank,
+        openai_assistant_id: formData?.openai_assistant_id?.trim() || null,
+        is_active: formData?.is_active,
+        credits_per_message: parseInt(formData?.credits_per_message, 10) || 10
+      };
+
+      console.log('Saving assistant data with USM code domain:', updateData);
+
+      await onSave(updateData);
+      
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+      
     } catch (error) {
       console.error('Error saving assistant:', error);
+      
+      // Check for domain constraint errors
+      if (error?.message?.includes('chk_assistants_domain_format') || 
+          error?.message?.includes('domain')) {
+        setSaveError(`Domain format error: Please use valid USM codes (USMXXX, USM1XX-USM9XX, ITIL, IT4IT)`);
+      } else {
+        setSaveError(error?.message || 'Failed to save assistant. Please try again.');
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -76,6 +132,15 @@ const AssistantEditor = ({
     if (errors?.[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
+    // Clear save messages when user makes changes
+    if (saveSuccess) setSaveSuccess(false);
+    if (saveError) setSaveError('');
+  };
+
+  // Get current domain display label
+  const getCurrentDomainLabel = () => {
+    const currentDomain = domainOptions?.find(option => option?.value === formData?.domain);
+    return currentDomain?.label || 'Undefined';
   };
 
   return (
@@ -95,6 +160,30 @@ const AssistantEditor = ({
             Configure AI assistant settings, knowledge bank assignments, and OpenAI integration
           </p>
         </div>
+
+        {/* Save Status Messages */}
+        {saveSuccess && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <Icon name="CheckCircle" size={20} className="text-green-600" />
+              <p className="text-green-800 font-medium">
+                Assistant {assistant ? 'updated' : 'created'} successfully!
+              </p>
+            </div>
+          </div>
+        )}
+
+        {saveError && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <Icon name="AlertCircle" size={20} className="text-red-600" />
+              <div>
+                <p className="text-red-800 font-medium">Save failed</p>
+                <p className="text-red-700 text-sm mt-1">{saveError}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Basic Information */}
@@ -117,14 +206,43 @@ const AssistantEditor = ({
 
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
-                  Domain <span className="text-error">*</span>
+                  USM Domain Code <span className="text-error">*</span>
                 </label>
                 <Select
                   options={domainOptions}
                   value={formData?.domain}
                   onChange={(value) => handleInputChange('domain', value)}
-                  placeholder="Select domain"
+                  placeholder="Select USM domain code"
+                  error={errors?.domain}
                 />
+                <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <div className="flex items-start space-x-2">
+                    <Icon name="CheckCircle" size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm text-green-800">
+                        <strong>✅ FIXED:</strong> Domain now accepts USM codes directly!
+                      </p>
+                      <p className="text-xs text-green-700 mt-1">
+                        The domain column has been converted from enum to text type. 
+                        You can now select any USM code (USM1XX-USM9XX, USMXXX) and it will save properly to the database.
+                        Changes are saved immediately without enum constraint errors.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                {/* Alternative: Manual USM code input */}
+                <div className="mt-3">
+                  <label className="block text-xs text-muted-foreground mb-1">
+                    Or enter custom USM code:
+                  </label>
+                  <Input
+                    type="text"
+                    value={formData?.domain}
+                    onChange={(e) => handleInputChange('domain', e?.target?.value?.toUpperCase())}
+                    placeholder="USM5XX, USM6XX, etc."
+                    maxLength={6}
+                  />
+                </div>
               </div>
 
               <div className="md:col-span-2">
@@ -132,7 +250,7 @@ const AssistantEditor = ({
                   Description <span className="text-error">*</span>
                 </label>
                 <textarea
-                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-vertical"
                   rows={3}
                   value={formData?.description}
                   onChange={(e) => handleInputChange('description', e?.target?.value)}
@@ -249,16 +367,22 @@ const AssistantEditor = ({
               type="button"
               variant="outline"
               onClick={onCancel}
+              disabled={saving}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               variant="default"
-              iconName="Save"
+              iconName={saving ? "Loader2" : "Save"}
               iconPosition="left"
+              disabled={saving}
+              className={saving ? "animate-spin" : ""}
             >
-              {assistant ? 'Update Assistant' : 'Create Assistant'}
+              {saving 
+                ? (assistant ? 'Updating Assistant...' : 'Creating Assistant...') 
+                : (assistant ? 'Update Assistant' : 'Create Assistant')
+              }
             </Button>
           </div>
         </form>
