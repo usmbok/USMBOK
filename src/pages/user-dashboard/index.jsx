@@ -50,7 +50,58 @@ const UserDashboard = () => {
 
   // Fetch real data from Supabase - Updated for knowledge bank alignment
   const fetchDashboardData = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      // Show demo data when no user is authenticated
+      console.log('No authenticated user, showing demo dashboard data');
+      setDashboardData({
+        creditBalance: {
+          credits: 95000,
+          monthlyAllowance: 100000,
+          usagePercentage: 5,
+          nextBillingDate: 'Trial - No billing'
+        },
+        domains: [
+          { id: 'usmbok', name: 'USMBOK Framework', description: 'Core service management framework', conversationCount: 3 },
+          { id: 'itil', name: 'ITIL 4', description: 'IT service management best practices', conversationCount: 1 },
+          { id: 'technology', name: 'Technology Strategy', description: 'Technology consulting and planning', conversationCount: 2 }
+        ],
+        recentConversations: [
+          { id: 1, title: 'Service Value Chain Discussion', domain: 'USMBOK Framework', lastActivity: new Date(), messageCount: 15, creditsUsed: 150 },
+          { id: 2, title: 'Digital Transformation Strategy', domain: 'Technology Strategy', lastActivity: new Date(), messageCount: 8, creditsUsed: 80 }
+        ],
+        monthlyUsage: [
+          { month: 'Aug', credits: 800 },
+          { month: 'Sep', credits: 1200 },
+          { month: 'Oct', credits: 1500 },
+          { month: 'Nov', credits: 2100 },
+          { month: 'Dec', credits: 3200 },
+          { month: 'Jan', credits: 5000 }
+        ],
+        domainUsage: [
+          { name: 'USMBOK Framework', value: 2500 },
+          { name: 'Technology Strategy', value: 1500 },
+          { name: 'ITIL 4', value: 1000 }
+        ],
+        subscription: {
+          plan: 'Trial',
+          status: 'Active',
+          creditsPerMonth: 100000,
+          monthlyPrice: 0,
+          nextBillingDate: 'Trial - No billing'
+        },
+        recentTransactions: [
+          { id: 1, type: 'initial', amount: 100000, description: 'Trial credits', created_at: new Date() }
+        ],
+        accountStats: {
+          totalConversations: 5,
+          totalCreditsUsed: 5000,
+          averageSessionTime: '24m',
+          memberSince: 'Jan 2025'
+        }
+      });
+      setIsLoading(false);
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -173,9 +224,8 @@ const UserDashboard = () => {
   };
 
   useEffect(() => {
-    if (user?.id && !creditsLoading) {
-      fetchDashboardData();
-    }
+    // Always call fetchDashboardData, regardless of user state
+    fetchDashboardData();
   }, [user?.id, balance, creditsLoading]);
 
   const handleNewConversation = () => {

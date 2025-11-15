@@ -7,11 +7,13 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Eye, EyeOff, Mail, AlertCircle, CheckCircle2, Loader } from 'lucide-react';
+import Icon from '../../components/AppIcon';
+
 
 const LoginScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signIn, loading, user } = useAuth();
+  const { signIn, resetPassword, loading, user } = useAuth();
   const { balance } = useUserCredit();
 
   const [formData, setFormData] = useState({
@@ -121,7 +123,6 @@ const LoginScreen = () => {
     }
 
     try {
-      const { resetPassword } = useAuth();
       const { error } = await resetPassword(resetEmail);
 
       if (error) {
@@ -215,10 +216,32 @@ const LoginScreen = () => {
       <Header />
       
       <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[calc(100vh-80px)]">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-xl p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome Back</h1>
-            <p className="text-gray-600">Sign in to access your AI consultation dashboard</p>
+        <div className="max-w-md w-full space-y-8">
+          <div>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+              Sign in to your account
+            </h2>
+            <p className="mt-2 text-center text-sm text-gray-600">
+              Or{' '}
+              <Link
+                to="/register"
+                className="font-medium text-indigo-600 hover:text-indigo-500"
+              >
+                create a new account
+              </Link>
+            </p>
+          </div>
+
+          {/* Demo Credentials Section */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center space-x-2 mb-2">
+              <Icon name="Info" size={16} className="text-blue-600" />
+              <h3 className="text-sm font-medium text-blue-800">Demo Credentials</h3>
+            </div>
+            <div className="text-sm text-blue-700 space-y-1">
+              <div><strong>Admin:</strong> ian@ianmclayton.com / password123</div>
+              <div><strong>User:</strong> demo@example.com / password123</div>
+            </div>
           </div>
 
           {/* Login Status Message */}
