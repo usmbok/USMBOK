@@ -7,7 +7,7 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import { Checkbox } from '../../components/ui/Checkbox';
 import { Eye, EyeOff, Mail, AlertCircle, CheckCircle2, Loader } from 'lucide-react';
-import Icon from '../../components/AppIcon';
+
 
 
 const LoginScreen = () => {
@@ -232,37 +232,51 @@ const LoginScreen = () => {
             </p>
           </div>
 
+          <div className="mb-6">
+            <Button 
+              onClick={handleSubmit} 
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
+          </div>
+
           {/* Demo Credentials Section */}
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <Icon name="Info" size={16} className="text-blue-600" />
-              <h3 className="text-sm font-medium text-blue-800">Demo Credentials</h3>
-            </div>
-            <div className="text-sm text-blue-700 space-y-1">
-              <div><strong>Admin:</strong> ian@ianmclayton.com / password123</div>
-              <div><strong>User:</strong> demo@example.com / password123</div>
+          <div className="bg-gray-50 p-4 rounded-lg border">
+            <h3 className="text-sm font-medium text-gray-700 mb-3">Demo Credentials for Testing:</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Admin Access:</span>
+                <div className="text-right">
+                  <div className="font-mono text-xs">admin@admin.com</div>
+                  <div className="font-mono text-xs">admin</div>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Ian Admin Access:</span>
+                <div className="text-right">
+                  <div className="font-mono text-xs">ian@ianmclayton.com</div>
+                  <div className="font-mono text-xs">password123</div>
+                </div>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-gray-600">Subscriber Access:</span>
+                <div className="text-right">
+                  <div className="font-mono text-xs">subscriber@usmbok.com</div>
+                  <div className="font-mono text-xs">password123</div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Login Status Message */}
-          {location?.state?.message && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-              <div className="flex items-center gap-2 text-blue-700">
-                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm">{location?.state?.message}</span>
-              </div>
+          {errors?.general && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-700">{errors?.general}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* General Error */}
-            {errors?.general && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2 text-red-700">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span className="text-sm">{errors?.general}</span>
-              </div>
-            )}
-
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
