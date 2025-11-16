@@ -250,7 +250,7 @@ const LoginScreen = () => {
                 <span className="text-gray-600">Admin Access:</span>
                 <div className="text-right">
                   <div className="font-mono text-xs">admin@admin.com</div>
-                  <div className="font-mono text-xs">admin</div>
+                  <div className="font-mono text-xs">admin123</div>
                 </div>
               </div>
               <div className="flex justify-between items-center">
