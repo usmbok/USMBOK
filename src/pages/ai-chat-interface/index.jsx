@@ -385,7 +385,7 @@ const AIChatInterface = () => {
                     variant="outline"
                     size="sm"
                     fullWidth
-                    onClick={() => navigate('/domain-selection')}
+                    onClick={() => navigate('/assistant-catalog')}
                     iconName="Brain"
                     iconPosition="left"
                   >
